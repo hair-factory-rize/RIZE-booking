@@ -20,32 +20,43 @@
 
   <script>
     // Supabase クライアント作成
-    const supabaseUrl = 'https://yrznusedrekdxkbalvqb.supabase.co';
+    const supabaseUrl = 'https://ryznusedrekdxkbalvqf.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlyem51c2VkcmVrZHhrYmFsdnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5Njk0ODMsImV4cCI6MjA3NDU0NTQ4M30.9fXmFwH7uht15jd-H-jIfIuL0DoIQzmf7FIVgUdyH6E';
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    const signupBtn = document.getElementById('signupBtn');
-    const messageDiv = document.getElementById('message');
+    document.addEventListener("DOMContentLoaded", () => {
+      const signupBtn = document.getElementById('signupBtn');
+      const messageDiv = document.getElementById('message');
 
-    signupBtn.addEventListener('click', async () => {
-      const name = document.getElementById('name').value;
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
+      signupBtn.addEventListener('click', async () => {
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
 
-      const { data, error } = await supabase.auth.signUp({
-        email: email,
-        password: password,
-      }, {
-        data: { full_name: name } // 任意の追加情報
+        if (!email || !password) {
+          messageDiv.textContent = 'メールアドレスとパスワードは必須です';
+          messageDiv.style.color = 'red';
+          return;
+        }
+
+        const { data, error } = await supabase.auth.signUp(
+          {
+            email: email,
+            password: password,
+          },
+          {
+            data: { full_name: name } // 任意の追加情報
+          }
+        );
+
+        if (error) {
+          messageDiv.textContent = 'エラー: ' + error.message;
+          messageDiv.style.color = 'red';
+        } else {
+          messageDiv.textContent = '確認メールを送信しました。メールを確認してください。';
+          messageDiv.style.color = 'green';
+        }
       });
-
-      if (error) {
-        messageDiv.textContent = 'エラー: ' + error.message;
-        messageDiv.style.color = 'red';
-      } else {
-        messageDiv.textContent = '確認メールを送信しました。メールを確認してください。';
-        messageDiv.style.color = 'green';
-      }
     });
   </script>
 </body>
