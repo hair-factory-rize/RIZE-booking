@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>美容室予約 - 予約ページ</title>
+</head>
+<body>
+  <h1>新規予約</h1>
+
+  <form id="booking-form">
+    <label>
+      日付:
+      <input type="date" id="date" required>
+    </label><br>
+
+    <label>
+      時間:
+      <select id="time" required>
+        <option value="">選択してください</option>
+        <option value="10:00">10:00</option>
+        <option value="11:00">11:00</option>
+        <option value="12:00">12:00</option>
+        <option value="13:00">13:00</option>
+        <option value="14:00">14:00</option>
+        <option value="15:00">15:00</option>
+        <option value="16:00">16:00</option>
+      </select>
+    </label><br>
+
+    <label>
+      サービス:
+      <select id="service" required>
+        <option value="">選択してください</option>
+        <option value="カット">カット</option>
+        <option value="カラー">カラー</option>
+        <option value="パーマ">パーマ</option>
+      </select>
+    </label><br>
+
+    <button type="submit">予約する</button>
+  </form>
+
+  <div id="message"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDTi1VH5RTTtgdz4W4wHCVGXJRGUSmdSbE",
+      authDomain: "rize-booking.firebaseapp.com",
+      projectId: "rize-booking",
+      storageBucket: "rize-booking.firebasestorage.app",
+      messagingSenderId: "831764174349",
+      appId: "1:831764174349:web:43af7e5729672437ea2744",
+      measurementId: "G-SKGWPHNZMP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const bookingForm = document.getElementById("booking-form");
+    const messageDiv = document.getElementById("message");
+
+    let currentUser = null;
+
+    // ログイン中のユーザーを取得
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+      } else {
+        messageDiv.textContent = "ログインしてください";
+        bookingForm.style.display = "none";
+      }
+    });
+
+    bookingForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!currentUser) return;
+
+      const date = document.getElementById("date").value;
+      const time = document.getElementById("time").value;
+      const service = document.getElementById("service").value;
+
+      try {
+        await addDoc(collection(db, "bookings"), {
+          userId: currentUser.uid,
+          email: currentUser.email,
+          date: date,
+          time: time,
+          service: service,
+          status: "未確定",
+          createdAt: serverTimestamp()
+        });
+
+        messageDiv.textContent = "予約が完了しました！";
+        bookingForm.reset();
+      } catch (error) {
+        messageDiv.textContent = "エラー: " + error.message;
+      }
+    });
+  </script>
+</body>
+</html>
