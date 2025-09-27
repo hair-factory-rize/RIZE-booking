@@ -2,107 +2,56 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>RIZE Booking - サインアップ / ログイン</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <title>サインアップ</title>
   <style>
-    body { font-family: sans-serif; max-width: 400px; margin: 50px auto; }
-    input, button { width: 100%; padding: 10px; margin: 5px 0; }
-    .message { margin-top: 10px; }
-    button { cursor: pointer; }
+    body { font-family: system-ui, sans-serif; padding: 2rem; background: #f0f0f0; }
+    form { background: #fff; padding: 1rem; border-radius: 8px; max-width: 400px; margin: auto; }
+    input, button { display: block; width: 100%; margin: 0.5rem 0; padding: 0.5rem; }
+    button { background: #0070f3; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #005bb5; }
   </style>
 </head>
 <body>
-  <h1>RIZE Booking</h1>
+  <h1>サインアップ</h1>
+  <form id="signupForm">
+    <input type="email" id="email" placeholder="メールアドレス" required>
+    <input type="password" id="password" placeholder="パスワード" required>
+    <button type="submit">登録</button>
+  </form>
 
-  <h2>サインアップ</h2>
-  <input type="text" id="signupName" placeholder="名前">
-  <input type="email" id="signupEmail" placeholder="メールアドレス">
-  <input type="password" id="signupPassword" placeholder="パスワード">
-  <button id="signupBtn">登録</button>
-  <div class="message" id="signupMessage"></div>
-
-  <hr>
-
-  <h2>ログイン</h2>
-  <input type="email" id="loginEmail" placeholder="メールアドレス">
-  <input type="password" id="loginPassword" placeholder="パスワード">
-  <button id="loginBtn">ログイン</button>
-  <div class="message" id="loginMessage"></div>
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
   <script>
-    // ------------------------------
-    // Supabase クライアント作成
-    // ------------------------------
-    const supabaseUrl = 'https://ryznusedrekdxkbalvqf.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlyem51c2VkcmVrZHhrYmFsdnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5Njk0ODMsImV4cCI6MjA3NDU0NTQ4M30.9fXmFwH7uht15jd-H-jIfIuL0DoIQzmf7FIVgUdyH6E';
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    // Supabase 初期化
+    const SUPABASE_URL = 'https://xxxx.supabase.co'; // ここを自分の URL に置き換え
+    const SUPABASE_ANON_KEY = '公開キーをここに';   // ここを自分の anon key に置き換え
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    document.addEventListener("DOMContentLoaded", () => {
-      // サインアップ処理
-      const signupBtn = document.getElementById('signupBtn');
-      const signupMessage = document.getElementById('signupMessage');
+    // DOM が読み込まれたら
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('signupForm');
 
-      signupBtn.addEventListener('click', async () => {
-        const name = document.getElementById('signupName').value.trim();
-        const email = document.getElementById('signupEmail').value.trim();
-        const password = document.getElementById('signupPassword').value;
-
-        if (!email || !password) {
-          signupMessage.textContent = 'メールアドレスとパスワードは必須です';
-          signupMessage.style.color = 'red';
-          return;
-        }
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
 
         try {
-          const { data, error } = await supabase.auth.signUp(
-            { email, password },
-            { data: { full_name: name } }
-          );
-
+          const { data, error } = await supabase.auth.signUp({ email, password });
           if (error) {
-            signupMessage.textContent = 'エラー: ' + error.message;
-            signupMessage.style.color = 'red';
-          } else {
-            signupMessage.textContent = '確認メールを送信しました。メールを確認してください。';
-            signupMessage.style.color = 'green';
+            alert(`エラー: ${error.message}`);
+            return;
           }
+          alert('登録成功！メールを確認してください。');
+          console.log(data);
         } catch (err) {
-          signupMessage.textContent = '予期せぬエラー: ' + err.message;
-          signupMessage.style.color = 'red';
-        }
-      });
-
-      // ログイン処理
-      const loginBtn = document.getElementById('loginBtn');
-      const loginMessage = document.getElementById('loginMessage');
-
-      loginBtn.addEventListener('click', async () => {
-        const email = document.getElementById('loginEmail').value.trim();
-        const password = document.getElementById('loginPassword').value;
-
-        if (!email || !password) {
-          loginMessage.textContent = 'メールアドレスとパスワードは必須です';
-          loginMessage.style.color = 'red';
-          return;
-        }
-
-        try {
-          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-          if (error) {
-            loginMessage.textContent = 'ログインエラー: ' + error.message;
-            loginMessage.style.color = 'red';
-          } else {
-            loginMessage.textContent = 'ログイン成功！';
-            loginMessage.style.color = 'green';
-            console.log('ログインユーザー:', data.user);
-          }
-        } catch (err) {
-          loginMessage.textContent = '予期せぬエラー: ' + err.message;
-          loginMessage.style.color = 'red';
+          console.error(err);
         }
       });
     });
+
+    // 拡張機能やブラウザエラー無視用（コンソールに表示されないように）
+    window.addEventListener('error', (e) => { e.stopImmediatePropagation(); }, true);
+    window.addEventListener('unhandledrejection', (e) => { e.stopImmediatePropagation(); }, true);
   </script>
 </body>
 </html>
