@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理者ページ - 予約確認</title>
+</head>
+<body>
+  <h1>管理者ページ</h1>
+
+  <div id="users-section">
+    <h2>ユーザー一覧</h2>
+    <ul id="user-list"></ul>
+  </div>
+
+  <div id="bookings-section">
+    <h2>予約一覧</h2>
+    <ul id="booking-list"></ul>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDTi1VH5RTTtgdz4W4wHCVGXJRGUSmdSbE",
+      authDomain: "rize-booking.firebaseapp.com",
+      projectId: "rize-booking",
+      storageBucket: "rize-booking.firebasestorage.app",
+      messagingSenderId: "831764174349",
+      appId: "1:831764174349:web:43af7e5729672437ea2744",
+      measurementId: "G-SKGWPHNZMP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const userList = document.getElementById("user-list");
+    const bookingList = document.getElementById("booking-list");
+
+    async function loadUsers() {
+      const querySnapshot = await getDocs(collection(db, "users"));
+      userList.innerHTML = "";
+      querySnapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        const li = document.createElement("li");
+        li.textContent = `${data.name} (${data.email})`;
+        userList.appendChild(li);
+      });
+    }
+
+    async function loadBookings() {
+      const querySnapshot = await getDocs(collection(db, "bookings"));
+      bookingList.innerHTML = "";
+      querySnapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        const li = document.createElement("li");
+        li.textContent = `${data.date} ${data.time} - ${data.service} [${data.status}] by ${data.email}`;
+        bookingList.appendChild(li);
+      });
+    }
+
+    // ページロード時に読み込む
+    loadUsers();
+    loadBookings();
+  </script>
+</body>
+</html>
