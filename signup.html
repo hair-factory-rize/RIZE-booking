@@ -1,61 +1,71 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>サインアップページ</title>
-<style>
-  body { font-family: system-ui, sans-serif; background: #f0f0f0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-  form { background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 300px; }
-  input { display: block; width: 100%; padding: 0.5rem; margin-bottom: 1rem; border-radius: 4px; border: 1px solid #ccc; }
-  button { width: 100%; padding: 0.5rem; border: none; background: #007bff; color: #fff; border-radius: 4px; cursor: pointer; }
-  button:hover { background: #0056b3; }
-  .error { color: red; margin-bottom: 1rem; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>美容室予約 - ユーザー登録</title>
 </head>
 <body>
+  <h1>ユーザー登録</h1>
 
-<form id="signup-form">
-  <h2>サインアップ</h2>
-  <div class="error" id="error-msg"></div>
-  <input type="email" id="email" placeholder="メールアドレス" required>
-  <input type="password" id="password" placeholder="パスワード" required>
-  <button type="submit">登録</button>
-</form>
+  <form id="signup-form">
+    <input type="text" id="name" placeholder="名前" required /><br>
+    <input type="email" id="email" placeholder="メールアドレス" required /><br>
+    <input type="password" id="password" placeholder="パスワード" required /><br>
+    <button type="submit">登録</button>
+  </form>
 
-<!-- Supabase ライブラリ -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
-<script>
-  // Supabase 初期化
-  const supabaseUrl = 'https://xxxx.supabase.co'; // あなたの Supabase URL
-  const supabaseKey = '公開キー'; // あなたの公開キー
-  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+  <div id="message"></div>
 
-  const form = document.getElementById('signup-form');
-  const errorMsg = document.getElementById('error-msg');
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    errorMsg.textContent = '';
+    const firebaseConfig = {
+      apiKey: "AIzaSyDTi1VH5RTTtgdz4W4wHCVGXJRGUSmdSbE",
+      authDomain: "rize-booking.firebaseapp.com",
+      projectId: "rize-booking",
+      storageBucket: "rize-booking.firebasestorage.app",
+      messagingSenderId: "831764174349",
+      appId: "1:831764174349:web:43af7e5729672437ea2744",
+      measurementId: "G-SKGWPHNZMP"
+    };
 
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    try {
-      const { data, error } = await supabase.auth.signUp({ email, password });
+    const signupForm = document.getElementById("signup-form");
+    const messageDiv = document.getElementById("message");
 
-      if (error) {
-        errorMsg.textContent = error.message;
-      } else {
-        alert('登録に成功しました！確認メールを送信しました。');
-        form.reset();
+    signupForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        // ユーザー登録
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Firestore にユーザー情報保存
+        await setDoc(doc(db, "users", user.uid), {
+          name: name,
+          email: email,
+          createdAt: serverTimestamp()
+        });
+
+        // メール確認送信
+        await sendEmailVerification(user);
+
+        messageDiv.textContent = "登録成功！確認メールを送信しました。";
+      } catch (error) {
+        messageDiv.textContent = "エラー: " + error.message;
       }
-    } catch (err) {
-      errorMsg.textContent = 'エラーが発生しました。';
-      console.error(err);
-    }
-  });
-</script>
-
+    });
+  </script>
 </body>
 </html>
