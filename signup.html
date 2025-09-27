@@ -19,18 +19,23 @@
   <div class="message" id="message"></div>
 
   <script>
+    // ------------------------------
     // Supabase クライアント作成
+    // ------------------------------
     const supabaseUrl = 'https://ryznusedrekdxkbalvqf.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlyem51c2VkcmVrZHhrYmFsdnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5Njk0ODMsImV4cCI6MjA3NDU0NTQ4M30.9fXmFwH7uht15jd-H-jIfIuL0DoIQzmf7FIVgUdyH6E';
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
+    // ------------------------------
+    // DOM読み込み後にクリック処理
+    // ------------------------------
     document.addEventListener("DOMContentLoaded", () => {
       const signupBtn = document.getElementById('signupBtn');
       const messageDiv = document.getElementById('message');
 
       signupBtn.addEventListener('click', async () => {
-        const name = document.getElementById('name').value;
-        const email = document.getElementById('email').value;
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
 
         if (!email || !password) {
@@ -39,22 +44,25 @@
           return;
         }
 
-        const { data, error } = await supabase.auth.signUp(
-          {
-            email: email,
-            password: password,
-          },
-          {
-            data: { full_name: name } // 任意の追加情報
-          }
-        );
+        // ------------------------------
+        // Supabase サインアップ処理
+        // ------------------------------
+        try {
+          const { data, error } = await supabase.auth.signUp(
+            { email, password },
+            { data: { full_name: name } }
+          );
 
-        if (error) {
-          messageDiv.textContent = 'エラー: ' + error.message;
+          if (error) {
+            messageDiv.textContent = 'エラー: ' + error.message;
+            messageDiv.style.color = 'red';
+          } else {
+            messageDiv.textContent = '確認メールを送信しました。メールを確認してください。';
+            messageDiv.style.color = 'green';
+          }
+        } catch (err) {
+          messageDiv.textContent = '予期せぬエラー: ' + err.message;
           messageDiv.style.color = 'red';
-        } else {
-          messageDiv.textContent = '確認メールを送信しました。メールを確認してください。';
-          messageDiv.style.color = 'green';
         }
       });
     });
