@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>美容室予約 - マイページ</title>
+</head>
+<body>
+  <h1>マイページ</h1>
+
+  <!-- ログインフォーム -->
+  <div id="login-section">
+    <input type="email" id="login-email" placeholder="メール" required><br>
+    <input type="password" id="login-password" placeholder="パスワード" required><br>
+    <button id="login-btn">ログイン</button>
+    <div id="login-message"></div>
+  </div>
+
+  <!-- ユーザー情報 -->
+  <div id="user-section" style="display:none;">
+    <p id="user-info"></p>
+    <h2>予約履歴</h2>
+    <ul id="booking-list"></ul>
+    <button id="logout-btn">ログアウト</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+    import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDTi1VH5RTTtgdz4W4wHCVGXJRGUSmdSbE",
+      authDomain: "rize-booking.firebaseapp.com",
+      projectId: "rize-booking",
+      storageBucket: "rize-booking.firebasestorage.app",
+      messagingSenderId: "831764174349",
+      appId: "1:831764174349:web:43af7e5729672437ea2744",
+      measurementId: "G-SKGWPHNZMP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const loginSection = document.getElementById("login-section");
+    const userSection = document.getElementById("user-section");
+    const loginBtn = document.getElementById("login-btn");
+    const logoutBtn = document.getElementById("logout-btn");
+    const loginMessage = document.getElementById("login-message");
+    const userInfo = document.getElementById("user-info");
+    const bookingList = document.getElementById("booking-list");
+
+    // ログイン
+    loginBtn.addEventListener("click", async () => {
+      const email = document.getElementById("login-email").value;
+      const password = document.getElementById("login-password").value;
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        loginMessage.textContent = "";
+      } catch (error) {
+        loginMessage.textContent = "エラー: " + error.message;
+      }
+    });
+
+    // ログアウト
+    logoutBtn.addEventListener("click", async () => {
+      await signOut(auth);
+    });
+
+    // 認証状態の監視
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        loginSection.style.display = "none";
+        userSection.style.display = "block";
+
+        // ユーザー情報表示
+        userInfo.textContent = `ようこそ、${user.email} さん`;
+
+        // 予約履歴取得
+        bookingList.innerHTML = "";
+        const q = query(collection(db, "bookings"), where("userId", "==", user.uid));
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          const li = document.createElement("li");
+          li.textContent = `${data.date} ${data.time} - ${data.service} [${data.status}]`;
+          bookingList.appendChild(li);
+        });
+
+      } else {
+        loginSection.style.display = "block";
+        userSection.style.display = "none";
+      }
+    });
+  </script>
+</body>
+</html>
